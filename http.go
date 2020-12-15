@@ -1,7 +1,6 @@
 package hd
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -58,9 +57,10 @@ func (h *HttpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 		//outs := make([]reflect.Value, 2)
 
 		// create request
-		ctx := kaos.NewContext(context.Background(), svc, sr)
+		ctx := kaos.NewContext(svc, sr)
 		ctx.Data().Set("path", sr.Path)
 		ctx.Data().Set("http-request", r)
+		ctx.Data().Set("http-writer", w)
 		authTxt := r.Header.Get("Authorization")
 		if strings.HasPrefix(authTxt, "Bearer ") {
 			ctx.Data().Set("jwt-token", strings.Replace(authTxt, "Bearer ", "", 1))
