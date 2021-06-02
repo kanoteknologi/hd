@@ -12,26 +12,29 @@ import (
 
 	"git.kanosolution.net/kano/kaos"
 	"git.kanosolution.net/kano/kaos/deployer"
+	"github.com/eaciit/toolkit"
 )
 
-type HttpDeployer struct {
+const DeployerName string = "kaos-http-deployer"
+
+type httpDeployer struct {
 	deployer.BaseDeployer
 	mx *http.ServeMux
 }
 
 func init() {
-	deployer.RegisterDeployer("http", func() (deployer.Deployer, error) {
-		return new(HttpDeployer), nil
+	deployer.RegisterDeployer(DeployerName, func() (deployer.Deployer, error) {
+		return new(httpDeployer), nil
 	})
 }
 
 // NewHttpDeployer initiate deployer
 func NewHttpDeployer() deployer.Deployer {
-	dep := new(HttpDeployer)
+	dep := new(httpDeployer)
 	return dep.SetThis(dep)
 }
 
-func (h *HttpDeployer) PreDeploy(obj interface{}) error {
+func (h *httpDeployer) PreDeploy(obj interface{}) error {
 	var ok bool
 	h.mx, ok = obj.(*http.ServeMux)
 	if !ok {
@@ -44,7 +47,11 @@ func (h *HttpDeployer) PreDeploy(obj interface{}) error {
 	return nil
 }
 
-func (h *HttpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj interface{}) error {
+func (h *httpDeployer) Name() string {
+	return DeployerName
+}
+
+func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj interface{}) error {
 	var ok bool
 	h.mx, ok = obj.(*http.ServeMux)
 	if !ok {
@@ -97,7 +104,9 @@ func (h *HttpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 		func() {
 			defer func() {
 				if r := recover(); r != nil {
-					runErrTxt = fmt.Sprintf("%v trace: %s", r, string(debug.Stack()))
+					randNo := toolkit.RandInt(999999)
+					runErrTxt = fmt.Sprintf("error when running requested operation, please contact system admin and give this number [%d]", randNo)
+					ctx.Log().Error(fmt.Sprintf("[%d] %v trace: %s", randNo, r, string(debug.Stack())))
 				}
 			}()
 			bs, err = ioutil.ReadAll(r.Body)
@@ -114,35 +123,15 @@ func (h *HttpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 		}
 		//fmt.Printf("\nAfter tmp: %T %s\n", tmp, toolkit.JsonString(tmp))
 
-		// assign request to fn and run fn
-		/*
-			ins[0] = reflect.ValueOf(ctx)
-			if tmp == nil {
-				ins[1] = reflect.Zero(tmpType)
-			} else {
-				ins[1] = reflect.ValueOf(tmp)
-			}
-			outs = sr.Fn.Call(ins)
-
-
-			// check for error
-			if !outs[1].IsNil() {
-				err := outs[1].Interface().(error)
-				if err != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-					w.Write([]byte(err.Error()))
-					return
-				}
-			}
-		*/
-
 		// run the function
 		var res interface{}
 		runErrTxt = ""
 		func() {
 			defer func() {
 				if r := recover(); r != nil {
-					runErrTxt = fmt.Sprintf("%v trace: %s", r, string(debug.Stack()))
+					randNo := toolkit.RandInt(999999)
+					runErrTxt = fmt.Sprintf("error when running requested operation, please contact system admin and give this number [%d]", randNo)
+					ctx.Log().Error(fmt.Sprintf("[%d] %v trace: %s", randNo, r, string(debug.Stack())))
 				}
 			}()
 
@@ -185,6 +174,7 @@ func StartKaosWebServer(s *kaos.Service, serviceName, hostName string, mux *http
 	if mux == nil {
 		mux = http.NewServeMux()
 	}
+
 	if e = NewHttpDeployer().Deploy(s, mux); e != nil {
 		s.Log().Errorf("unable to deploy. %s", e.Error())
 		return csign, e
