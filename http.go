@@ -28,7 +28,7 @@ func init() {
 	})
 }
 
-// NewHttpDeployer initiate deployer
+// NewHttpDeployer initiate deployer to kaos
 func NewHttpDeployer() deployer.Deployer {
 	dep := new(httpDeployer)
 	return dep.SetThis(dep)
