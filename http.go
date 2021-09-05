@@ -141,9 +141,14 @@ func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 				return
 			}
 		}()
+
 		if runErrTxt != "" {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(runErrTxt))
+			return
+		}
+
+		if ctx.Data().Get("kaos-command-1", "").(string) == "stop" {
 			return
 		}
 
