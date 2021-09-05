@@ -1,4 +1,4 @@
-module github.com/kanoteknologi/khd
+module github.com/kanoteknologi/hd
 
 go 1.16
 
