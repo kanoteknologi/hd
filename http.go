@@ -118,7 +118,7 @@ func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 		}()
 
 		if runErrTxt != "" {
-			statusCode := ctx.Data().Get("http_status_code", http.StatusBadRequest).(int)
+			statusCode := ctx.Data().Get("http_status_code", http.StatusInternalServerError).(int)
 			w.WriteHeader(statusCode)
 			w.Write([]byte(runErrTxt))
 			return
@@ -134,6 +134,7 @@ func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 					randNo := toolkit.RandInt(999999)
 					runErrTxt = fmt.Sprintf("error when running requested operation, please contact system admin and give this number [%d]", randNo)
 					ctx.Log().Error(fmt.Sprintf("[%d] %v trace: %s", randNo, r, string(debug.Stack())))
+					ctx.Data().Get("http_status_code", http.StatusInternalServerError)
 				}
 			}()
 
@@ -159,7 +160,7 @@ func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 		//svc.Log().Infof("data: %v err: %v\n", res, err)
 		bs, err = h.This().Byter().Encode(res)
 		if err != nil {
-			statusCode := ctx.Data().Get("http_status_code", http.StatusBadRequest).(int)
+			statusCode := ctx.Data().Get("http_status_code", http.StatusInternalServerError).(int)
 			w.WriteHeader(statusCode)
 			w.Write([]byte("unable to encode output: " + err.Error()))
 			return
