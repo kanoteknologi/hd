@@ -116,8 +116,10 @@ func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 				return
 			}
 		}()
+
 		if runErrTxt != "" {
-			w.WriteHeader(http.StatusInternalServerError)
+			statusCode := ctx.Data().Get("http_status_code", http.StatusBadRequest).(int)
+			w.WriteHeader(statusCode)
 			w.Write([]byte(runErrTxt))
 			return
 		}
@@ -143,7 +145,8 @@ func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 		}()
 
 		if runErrTxt != "" {
-			w.WriteHeader(http.StatusInternalServerError)
+			statusCode := ctx.Data().Get("http_status_code", http.StatusBadRequest).(int)
+			w.WriteHeader(statusCode)
 			w.Write([]byte(runErrTxt))
 			return
 		}
@@ -156,11 +159,14 @@ func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 		//svc.Log().Infof("data: %v err: %v\n", res, err)
 		bs, err = h.This().Byter().Encode(res)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			statusCode := ctx.Data().Get("http_status_code", http.StatusBadRequest).(int)
+			w.WriteHeader(statusCode)
 			w.Write([]byte("unable to encode output: " + err.Error()))
 			return
 		}
-		w.WriteHeader(http.StatusOK)
+
+		statusCode := ctx.Data().Get("http_status_code", http.StatusOK).(int)
+		w.WriteHeader(statusCode)
 		w.Write(bs)
 	}
 
