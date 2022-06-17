@@ -12,7 +12,7 @@ import (
 
 	"git.kanosolution.net/kano/kaos"
 	"git.kanosolution.net/kano/kaos/deployer"
-	"github.com/eaciit/toolkit"
+	"github.com/sebarcode/codekit"
 )
 
 const DeployerName string = "kaos-http-deployer"
@@ -95,7 +95,7 @@ func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 			tmp = tmpv.Elem().Interface()
 			//tmpType = tmpv.Elem().Type()
 		}
-		//fmt.Printf("\nBefore tmp: %T %s\n", tmp, toolkit.JsonString(tmp))
+		//fmt.Printf("\nBefore tmp: %T %s\n", tmp, codekit.JsonString(tmp))
 
 		// get request
 		var err error
@@ -104,7 +104,7 @@ func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 		func() {
 			defer func() {
 				if r := recover(); r != nil {
-					randNo := toolkit.RandInt(999999)
+					randNo := codekit.RandInt(999999)
 					runErrTxt = fmt.Sprintf("error when running requested operation, please contact system admin and give this number [%d]", randNo)
 					ctx.Log().Error(fmt.Sprintf("[%d] %v trace: %s", randNo, r, string(debug.Stack())))
 				}
@@ -123,7 +123,7 @@ func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 			w.Write([]byte(runErrTxt))
 			return
 		}
-		//fmt.Printf("\nAfter tmp: %T %s\n", tmp, toolkit.JsonString(tmp))
+		//fmt.Printf("\nAfter tmp: %T %s\n", tmp, codekit.JsonString(tmp))
 
 		// run the function
 		var res interface{}
@@ -131,7 +131,7 @@ func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 		func() {
 			defer func() {
 				if r := recover(); r != nil {
-					randNo := toolkit.RandInt(999999)
+					randNo := codekit.RandInt(999999)
 					runErrTxt = fmt.Sprintf("error when running requested operation, please contact system admin and give this number [%d]", randNo)
 					ctx.Log().Error(fmt.Sprintf("[%d] %v trace: %s", randNo, r, string(debug.Stack())))
 					ctx.Data().Get("http_status_code", http.StatusInternalServerError)
