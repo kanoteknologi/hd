@@ -224,3 +224,15 @@ func SetHeaders(ctx *kaos.Context, headers map[string]string) {
 func SetContentType(ctx *kaos.Context, contentType string) {
 	ctx.Data().Set("http_content_type", contentType)
 }
+
+func IsHttpHandler(ctx *kaos.Context) bool {
+	r := ctx.Data().Get("http-request", nil)
+	w := ctx.Data().Get("http-writer", nil)
+
+	if _, ok := r.(*http.Request); ok {
+		if _, ok = w.(http.ResponseWriter); ok {
+			return ok
+		}
+	}
+	return false
+}
