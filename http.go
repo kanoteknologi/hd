@@ -68,10 +68,6 @@ func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 		ctx.Data().Set("path", sr.Path)
 		ctx.Data().Set("http-request", r)
 		ctx.Data().Set("http-writer", w)
-		authTxt := r.Header.Get("Authorization")
-		if strings.HasPrefix(authTxt, "Bearer ") {
-			ctx.Data().Set("jwt-token", strings.Replace(authTxt, "Bearer ", "", 1))
-		}
 
 		// get request type
 		var fn1Type reflect.Type
@@ -152,7 +148,7 @@ func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 			return
 		}
 
-		if ctx.Data().Get("kaos-command-1", "").(string) == "stop" {
+		if ctx.Data().Get("kaos_command_1", "").(string) == "stop" {
 			return
 		}
 
@@ -166,8 +162,21 @@ func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 			return
 		}
 
+		//-- status code
 		statusCode := ctx.Data().Get("http_status_code", http.StatusOK).(int)
 		w.WriteHeader(statusCode)
+
+		//-- content type
+		if contentType := ctx.Data().Get("http_content_type", "").(string); contentType != "" {
+			w.Header().Add("Content-Type", contentType)
+		}
+
+		//-- headers
+		headers := ctx.Data().Get("http_headers", map[string]string{}).(map[string]string)
+		for k, h := range headers {
+			w.Header().Add(k, h)
+		}
+
 		w.Write(bs)
 	}
 
@@ -202,4 +211,16 @@ func StartKaosWebServer(s *kaos.Service, serviceName, hostName string, mux *http
 	}()
 
 	return csign, nil
+}
+
+func SetStatusCode(ctx *kaos.Context, statusCode int) {
+	ctx.Data().Set("http_status_code", statusCode)
+}
+
+func SetHeaders(ctx *kaos.Context, headers map[string]string) {
+	ctx.Data().Set("http_headers", headers)
+}
+
+func SetContentType(ctx *kaos.Context, contentType string) {
+	ctx.Data().Set("http_content_type", contentType)
 }
