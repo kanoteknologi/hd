@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"reflect"
 	"runtime/debug"
 	"strings"
-	"syscall"
 
 	"git.kanosolution.net/kano/kaos"
 	"git.kanosolution.net/kano/kaos/deployer"
@@ -32,8 +30,11 @@ func init() {
 }
 
 // NewHttpDeployer initiate deployer to kaos
-func NewHttpDeployer() deployer.Deployer {
+func NewHttpDeployer(fn func(http.ResponseWriter, int, string)) deployer.Deployer {
 	dep := new(httpDeployer)
+	if fn != nil {
+		dep.SetWrapErrorFunction(fn)
+	}
 	return dep.SetThis(dep)
 }
 
@@ -205,33 +206,6 @@ func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 	svc.Log().Infof("registering to mux: %s", sr.Path)
 	h.mx.Handle(sr.Path, http.HandlerFunc(httpFn))
 	return nil
-}
-
-func StartKaosWebServer(s *kaos.Service, serviceName, hostName string, mux *http.ServeMux) (chan os.Signal, error) {
-	var e error
-
-	csign := make(chan os.Signal)
-
-	// deploy
-	if mux == nil {
-		mux = http.NewServeMux()
-	}
-
-	if e = NewHttpDeployer().Deploy(s, mux); e != nil {
-		s.Log().Errorf("unable to deploy. %s", e.Error())
-		return csign, e
-	}
-
-	go func() {
-		s.Log().Infof("Running %v service on %s", serviceName, hostName)
-		err := http.ListenAndServe(hostName, mux)
-		if err != nil {
-			s.Log().Infof("error starting web server %s. %s", hostName, err.Error())
-			csign <- syscall.SIGINT
-		}
-	}()
-
-	return csign, nil
 }
 
 func SetStatusCode(ctx *kaos.Context, statusCode int) {
