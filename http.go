@@ -20,6 +20,9 @@ const DeployerName string = "kaos-http-deployer"
 type httpDeployer struct {
 	deployer.BaseDeployer
 	mx *http.ServeMux
+
+	isWrapError bool
+	wrapErrFn   func(http.ResponseWriter, int, string)
 }
 
 func init() {
@@ -49,6 +52,11 @@ func (h *httpDeployer) PreDeploy(obj interface{}) error {
 
 func (h *httpDeployer) Name() string {
 	return DeployerName
+}
+
+func (h *httpDeployer) SetWrapErrorFunction(fn func(w http.ResponseWriter, status int, errTxt string)) {
+	h.wrapErrFn = fn
+	h.isWrapError = true
 }
 
 func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj interface{}) error {
@@ -115,6 +123,10 @@ func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 
 		if runErrTxt != "" {
 			statusCode := ctx.Data().Get("http_status_code", http.StatusInternalServerError).(int)
+			if h.isWrapError {
+				h.wrapErrFn(w, statusCode, runErrTxt)
+				return
+			}
 			w.WriteHeader(statusCode)
 			w.Write([]byte(runErrTxt))
 			return
@@ -143,6 +155,10 @@ func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 
 		if runErrTxt != "" {
 			statusCode := ctx.Data().Get("http_status_code", http.StatusBadRequest).(int)
+			if h.isWrapError {
+				h.wrapErrFn(w, statusCode, runErrTxt)
+				return
+			}
 			w.WriteHeader(statusCode)
 			w.Write([]byte(runErrTxt))
 			return
@@ -157,8 +173,13 @@ func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 		bs, err = h.This().Byter().Encode(res)
 		if err != nil {
 			statusCode := ctx.Data().Get("http_status_code", http.StatusInternalServerError).(int)
+			errTxt := "unable to encode output: " + err.Error()
+			if h.isWrapError {
+				h.wrapErrFn(w, statusCode, errTxt)
+				return
+			}
 			w.WriteHeader(statusCode)
-			w.Write([]byte("unable to encode output: " + err.Error()))
+			w.Write([]byte(errTxt))
 			return
 		}
 
