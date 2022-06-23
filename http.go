@@ -221,8 +221,8 @@ func SetContentType(ctx *kaos.Context, contentType string) {
 }
 
 func IsHttpHandler(ctx *kaos.Context) bool {
-	r := ctx.Data().Get("http-request", nil)
-	w := ctx.Data().Get("http-writer", nil)
+	r := ctx.Data().Get("http_request", nil)
+	w := ctx.Data().Get("http_writer", nil)
 
 	if _, ok := r.(*http.Request); ok {
 		if _, ok = w.(http.ResponseWriter); ok {
