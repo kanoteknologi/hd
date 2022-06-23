@@ -75,8 +75,8 @@ func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 		// create request
 		ctx := kaos.NewContext(svc, sr)
 		ctx.Data().Set("path", sr.Path)
-		ctx.Data().Set("http-request", r)
-		ctx.Data().Set("http-writer", w)
+		ctx.Data().Set("http_request", r)
+		ctx.Data().Set("http_writer", w)
 
 		// get request type
 		var fn1Type reflect.Type
