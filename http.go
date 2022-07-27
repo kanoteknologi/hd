@@ -73,7 +73,7 @@ func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 		//outs := make([]reflect.Value, 2)
 
 		// create request
-		ctx := kaos.NewContext(svc, sr)
+		ctx := kaos.NewContextFromService(svc, sr)
 		ctx.Data().Set("path", sr.Path)
 		ctx.Data().Set("http_request", r)
 		ctx.Data().Set("http_writer", w)
