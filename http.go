@@ -110,8 +110,8 @@ func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 			defer func() {
 				if r := recover(); r != nil {
 					randNo := codekit.RandInt(999999)
-					runErrTxt = fmt.Sprintf("error when running requested operation, please contact system admin and give this number [%d]", randNo)
-					ctx.Log().Error(fmt.Sprintf("[%d] %v trace: %s", randNo, r, string(debug.Stack())))
+					runErrTxt = fmt.Sprintf("error when running requested operation %s, please contact system admin and give this number [%d]", sr.Path, randNo)
+					ctx.Log().Error(fmt.Sprintf("[%d] %s %v trace: %s", randNo, sr.Path, r, string(debug.Stack())))
 				}
 			}()
 			bs, err = ioutil.ReadAll(r.Body)
@@ -141,8 +141,8 @@ func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 			defer func() {
 				if r := recover(); r != nil {
 					randNo := codekit.RandInt(999999)
-					runErrTxt = fmt.Sprintf("error when running requested operation, please contact system admin and give this number [%d]", randNo)
-					ctx.Log().Error(fmt.Sprintf("[%d] %v trace: %s", randNo, r, string(debug.Stack())))
+					runErrTxt = fmt.Sprintf("error when running requested operation %s, please contact system admin and give this number [%d]", sr.Path, randNo)
+					ctx.Log().Error(fmt.Sprintf("[%d] %s %v trace: %s", randNo, sr.Path, r, string(debug.Stack())))
 					ctx.Data().Get("http_status_code", http.StatusInternalServerError)
 				}
 			}()
