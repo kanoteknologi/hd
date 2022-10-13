@@ -171,17 +171,22 @@ func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 
 		// encode output
 		//svc.Log().Infof("data: %v err: %v\n", res, err)
-		bs, err = h.This().Byter().Encode(res)
-		if err != nil {
-			statusCode := ctx.Data().Get("http_status_code", http.StatusInternalServerError).(int)
-			errTxt := "unable to encode output: " + err.Error()
-			if h.isWrapError {
-				h.wrapErrFn(ctx, errTxt)
+		noEncode := ctx.Data().Get("no_encode", "").(string) == "1"
+		if !noEncode {
+			bs, err = h.This().Byter().Encode(res)
+			if err != nil {
+				statusCode := ctx.Data().Get("http_status_code", http.StatusInternalServerError).(int)
+				errTxt := "unable to encode output: " + err.Error()
+				if h.isWrapError {
+					h.wrapErrFn(ctx, errTxt)
+					return
+				}
+				w.WriteHeader(statusCode)
+				w.Write([]byte(errTxt))
 				return
 			}
-			w.WriteHeader(statusCode)
-			w.Write([]byte(errTxt))
-			return
+		} else {
+			bs = res.([]byte)
 		}
 
 		//-- status code
