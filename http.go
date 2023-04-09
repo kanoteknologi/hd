@@ -60,15 +60,8 @@ func (h *httpDeployer) SetWrapErrorFunction(fn func(ctx *kaos.Context, errTxt st
 	h.isWrapError = true
 }
 
-func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj interface{}) error {
-	var ok bool
-	h.mx, ok = obj.(*http.ServeMux)
-	if !ok {
-		return fmt.Errorf("second parameter should be a mux")
-	}
-
-	// path := svc.BasePoint() + sr.Path
-	httpFn := func(w http.ResponseWriter, r *http.Request) {
+func (h *httpDeployer) Fn(svc *kaos.Service, sr *kaos.ServiceRoute) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		//ins := make([]reflect.Value, 2)
 		//outs := make([]reflect.Value, 2)
 
@@ -206,7 +199,17 @@ func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 
 		w.Write(bs)
 	}
+}
 
+func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj interface{}) error {
+	var ok bool
+	h.mx, ok = obj.(*http.ServeMux)
+	if !ok {
+		return fmt.Errorf("second parameter should be a mux")
+	}
+
+	// path := svc.BasePoint() + sr.Path
+	httpFn := h.Fn(svc, sr)
 	sr.Path = strings.ReplaceAll(sr.Path, "\\", "/")
 	svc.Log().Infof("registering to mux: %s", sr.Path)
 	h.mx.Handle(sr.Path, http.HandlerFunc(httpFn))
