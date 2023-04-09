@@ -15,7 +15,7 @@ import (
 
 const DeployerName string = "kaos-http-deployer"
 
-type httpDeployer struct {
+type HttpDeployer struct {
 	deployer.BaseDeployer
 	mx *http.ServeMux
 
@@ -25,20 +25,20 @@ type httpDeployer struct {
 
 func init() {
 	deployer.RegisterDeployer(DeployerName, func() (deployer.Deployer, error) {
-		return new(httpDeployer), nil
+		return new(HttpDeployer), nil
 	})
 }
 
 // NewHttpDeployer initiate deployer to kaos
 func NewHttpDeployer(fn func(*kaos.Context, string)) deployer.Deployer {
-	dep := new(httpDeployer)
+	dep := new(HttpDeployer)
 	if fn != nil {
 		dep.SetWrapErrorFunction(fn)
 	}
 	return dep.SetThis(dep)
 }
 
-func (h *httpDeployer) PreDeploy(obj interface{}) error {
+func (h *HttpDeployer) PreDeploy(obj interface{}) error {
 	var ok bool
 	h.mx, ok = obj.(*http.ServeMux)
 	if !ok {
@@ -51,16 +51,16 @@ func (h *httpDeployer) PreDeploy(obj interface{}) error {
 	return nil
 }
 
-func (h *httpDeployer) Name() string {
+func (h *HttpDeployer) Name() string {
 	return DeployerName
 }
 
-func (h *httpDeployer) SetWrapErrorFunction(fn func(ctx *kaos.Context, errTxt string)) {
+func (h *HttpDeployer) SetWrapErrorFunction(fn func(ctx *kaos.Context, errTxt string)) {
 	h.wrapErrFn = fn
 	h.isWrapError = true
 }
 
-func (h *httpDeployer) Fn(svc *kaos.Service, sr *kaos.ServiceRoute) func(w http.ResponseWriter, r *http.Request) {
+func (h *HttpDeployer) Fn(svc *kaos.Service, sr *kaos.ServiceRoute) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		//ins := make([]reflect.Value, 2)
 		//outs := make([]reflect.Value, 2)
@@ -201,7 +201,7 @@ func (h *httpDeployer) Fn(svc *kaos.Service, sr *kaos.ServiceRoute) func(w http.
 	}
 }
 
-func (h *httpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj interface{}) error {
+func (h *HttpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj interface{}) error {
 	var ok bool
 	h.mx, ok = obj.(*http.ServeMux)
 	if !ok {
