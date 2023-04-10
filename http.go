@@ -30,12 +30,13 @@ func init() {
 }
 
 // NewHttpDeployer initiate deployer to kaos
-func NewHttpDeployer(fn func(*kaos.Context, string)) deployer.Deployer {
+func NewHttpDeployer(fn func(*kaos.Context, string)) *HttpDeployer {
 	dep := new(HttpDeployer)
 	if fn != nil {
 		dep.SetWrapErrorFunction(fn)
 	}
-	return dep.SetThis(dep)
+	dep.SetThis(dep)
+	return dep
 }
 
 func (h *HttpDeployer) PreDeploy(obj interface{}) error {
