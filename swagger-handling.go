@@ -2,7 +2,6 @@ package hd
 
 import (
 	"fmt"
-	"go/ast"
 	"go/parser"
 	"go/token"
 	"reflect"
@@ -11,29 +10,36 @@ import (
 	"git.kanosolution.net/kano/kaos"
 )
 
-func (hd *HttpDeployer) GenerateSwaggerSpec(service *kaos.Service, mainFilePath, sourceCode, host, schemes string) (*APISpec, error) {
+func (hd *HttpDeployer) GenerateSwaggerSpec(service *kaos.Service, files []string, sourceCode, host, schemes string) (*APISpec, error) {
 	res := NewSpec()
 
-	fs := token.NewFileSet()
-	var (
-		f   *ast.File
-		err error
-	)
-	if mainFilePath != "" {
-		f, err = parser.ParseFile(fs, mainFilePath, nil, parser.ParseComments)
-	} else if sourceCode != "" {
-		f, err = parser.ParseFile(fs, "", sourceCode, parser.ParseComments)
-	} else {
-		return nil, fmt.Errorf("either file path or source code need to be provided")
-	}
-	if err != nil {
-		return nil, fmt.Errorf("parse file: %s", err.Error())
+	for _, fileLoc := range files {
+		fs := token.NewFileSet()
+		f, err := parser.ParseFile(fs, fileLoc, nil, parser.ParseComments)
+		if err != nil {
+			return nil, fmt.Errorf("open file %s: %s", fileLoc, err.Error())
+		}
+
+		for _, fileComment := range f.Comments {
+			commentTxts := strings.Split(fileComment.Text(), "\n")
+			for _, comment := range commentTxts {
+				translateComment(res, comment)
+			}
+		}
 	}
 
-	for _, fileComment := range f.Comments {
-		commentTxts := strings.Split(fileComment.Text(), "\n")
-		for _, comment := range commentTxts {
-			translateComment(res, comment)
+	if sourceCode != "" {
+		fs := token.NewFileSet()
+		f, err := parser.ParseFile(fs, "", sourceCode, parser.ParseComments)
+		if err != nil {
+			return nil, fmt.Errorf("open source code: %s", err.Error())
+		}
+
+		for _, fileComment := range f.Comments {
+			commentTxts := strings.Split(fileComment.Text(), "\n")
+			for _, comment := range commentTxts {
+				translateComment(res, comment)
+			}
 		}
 	}
 

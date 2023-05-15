@@ -24,7 +24,7 @@ func TestSwaggerV1(t *testing.T) {
 
 	convey.Convey("swagger", t, func() {
 		convey.Convey("reading file from "+fileLoc, func() {
-			spec, err := dep.GenerateSwaggerSpec(s, fileLoc, "", "localhost:36900", "http,https")
+			spec, err := dep.GenerateSwaggerSpec(s, []string{fileLoc}, "", "localhost:36900", "http,https")
 			convey.So(err, convey.ShouldBeNil)
 			ioutil.WriteFile(filepath.Join(cwd, "swagger.json"), []byte(codekit.JsonStringIndent(spec, "\t")), 0644)
 		})
