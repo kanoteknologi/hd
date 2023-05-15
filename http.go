@@ -21,6 +21,8 @@ type HttpDeployer struct {
 
 	isWrapError bool
 	wrapErrFn   func(*kaos.Context, string)
+
+	routes map[string]*kaos.ServiceRoute
 }
 
 func init() {
@@ -36,6 +38,7 @@ func NewHttpDeployer(fn func(*kaos.Context, string)) *HttpDeployer {
 		dep.SetWrapErrorFunction(fn)
 	}
 	dep.SetThis(dep)
+	dep.routes = make(map[string]*kaos.ServiceRoute)
 	return dep
 }
 
@@ -214,7 +217,19 @@ func (h *HttpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 	sr.Path = strings.ReplaceAll(sr.Path, "\\", "/")
 	svc.Log().Infof("registering to mux: %s", sr.Path)
 	h.mx.Handle(sr.Path, http.HandlerFunc(httpFn))
+
+	h.routes[sr.Path] = sr
 	return nil
+}
+
+func (h *HttpDeployer) Routes() []kaos.ServiceRoute {
+	res := make([]kaos.ServiceRoute, len(h.routes))
+	index := 0
+	for _, v := range h.routes {
+		res[index] = *v
+		index++
+	}
+	return res
 }
 
 func SetStatusCode(ctx *kaos.Context, statusCode int) {
@@ -239,4 +254,10 @@ func IsHttpHandler(ctx *kaos.Context) bool {
 		}
 	}
 	return false
+}
+
+func GetWR(ctx *kaos.Context) (w http.ResponseWriter, r *http.Request) {
+	r, _ = ctx.Data().Get("http_request", nil).(*http.Request)
+	w, _ = ctx.Data().Get("http_writer", nil).(http.ResponseWriter)
+	return w, r
 }
