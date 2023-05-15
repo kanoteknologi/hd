@@ -39,12 +39,12 @@ type Path struct {
 }
 
 type Parameter struct {
-	Name        string `json:"name,omitempty"`
-	Description string `json:"description,omitempty"`
-	InputType   string `json:"in,omitempty"`
-	DataType    string `json:"type,omitempty"`
-	Format      string `json:"format,omitempty"`
-	Schema      Schema `json:"schema,omitempty"`
+	Name        string  `json:"name,omitempty"`
+	Description string  `json:"description,omitempty"`
+	InputType   string  `json:"in,omitempty"`
+	DataType    string  `json:"type,omitempty"`
+	Format      string  `json:"format,omitempty"`
+	Schema      *Schema `json:"schema,omitempty"`
 }
 
 type RequestBody struct {

@@ -53,13 +53,13 @@ func (hd *HttpDeployer) GenerateSwaggerSpec(service *kaos.Service, mainFilePath,
 }
 
 func pathSpecFromRoute(route *kaos.ServiceRoute, spec *APISpec) *Path {
-	res := spec.Path(route.Path, "post")
-	res.Produces = []string{"application/json"}
-	res.Consumes = []string{"application/json"}
-	res.Responses = make(map[string]*Response)
+	apiPath := spec.Path(route.Path, "post")
+	apiPath.Produces = []string{"application/json"}
+	apiPath.Consumes = []string{"application/json"}
+	apiPath.Responses = make(map[string]*Response)
 
 	uid := route.Fn.Type().String()
-	res.XGoReference = uid
+	apiPath.XGoReference = uid
 
 	tFn := route.Fn.Type()
 	in := tFn.In(tFn.NumIn() - 1)
@@ -67,21 +67,21 @@ func pathSpecFromRoute(route *kaos.ServiceRoute, spec *APISpec) *Path {
 		in = in.Elem()
 	}
 
-	parameter := res.Parameter("body")
+	parameter := apiPath.Parameter("body")
 	parameter.Name = "body"
 	parameter.InputType = "body"
 	parameter.SetFromType(in, spec)
 
 	// responses
 	outType := tFn.Out(0)
-	resOK := res.Response("200")
+	resOK := apiPath.Response("200")
 	resOK.Description = "Success"
 	resOK.SetFromType(outType, spec)
 
-	resError := res.Response("500")
+	resError := apiPath.Response("500")
 	resError.Description = "Error"
 
-	return res
+	return apiPath
 }
 
 func addDefinition(in reflect.Type, spec *APISpec) {
@@ -157,6 +157,37 @@ func translateComment(spec *APISpec, comment string) error {
 
 		apiPath := spec.Path(routeTxts[1], "")
 		apiPath.Description = stripTag(comment, fmt.Sprintf("%s %s", tag, routeTxts[1]))
+
+	case "@method":
+		routeTxts := strings.Split(comment, " ")
+		if len(routeTxts) < 3 {
+			return fmt.Errorf("method is not valid. %s", comment)
+		}
+
+		routePath := routeTxts[1]
+		method := routeTxts[2]
+		apiPath := spec.Path(routePath, method)
+		spec.SetPath(routePath, method, apiPath)
+
+	case "@param":
+		texts := strings.Split(comment, " ")
+		if len(texts) < 5 {
+			return fmt.Errorf("param is not valid. %s", comment)
+		}
+		routePath := texts[1]
+		paramId := texts[2]
+		paramType := texts[3]
+		paramSource := texts[4]
+		paramDesc := ""
+		if len(texts) > 5 {
+			paramDesc = strings.Join(texts[5:], " ")
+		}
+
+		apiPath := spec.Path(routePath, "")
+		param := apiPath.Parameter(paramId)
+		param.Description = paramDesc
+		param.InputType = paramSource
+		param.SetFromTypeStr(paramType, spec)
 	}
 
 	return nil

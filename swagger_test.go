@@ -84,6 +84,6 @@ func ogFn(ctx *kaos.Context, id string) (string, error) {
 
 // @route /nk/api1 non kaos web-api
 // @method /nk/api1 get
-// @param /nk/api1 id string id of data
+// @param /nk/api1 id string query id of data
 // @response /nk/api1 200 Success
 // @response-type /nk/api1 ref SPerson
