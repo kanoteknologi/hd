@@ -28,6 +28,14 @@ func TestSwaggerV1(t *testing.T) {
 			convey.So(err, convey.ShouldBeNil)
 			ioutil.WriteFile(filepath.Join(cwd, "swagger.json"), []byte(codekit.JsonStringIndent(spec, "\t")), 0644)
 		})
+
+		convey.Convey("handler list", func() {
+			convey.So(len(dep.Routes()), convey.ShouldBeGreaterThan, 0)
+			convey.Println()
+			for _, r := range dep.Routes() {
+				convey.Printf("@route %s\n", r.Path)
+			}
+		})
 	})
 }
 
@@ -64,11 +72,10 @@ func (o *LogicObj) DeletePerson(ctx *kaos.Context, p *SPerson) (*SPerson, error)
 	return nil, nil
 }
 
-/*
+// @route /obj/SaveAddress save person address
 func (o *LogicObj) SaveAddress(ctx *kaos.Context, a *SAddress) (*SAddress, error) {
 	return nil, nil
 }
-*/
 
 func PrepareServer() *kaos.Service {
 	s := kaos.NewService()

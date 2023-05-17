@@ -12,6 +12,25 @@
   "https"
  ],
  "definitions": {
+  "SAddress": {
+   "type": "object",
+   "properties": {
+    "Address": {
+     "type": "string"
+    },
+    "AddressType": {
+     "type": "string"
+    },
+    "ID": {
+     "type": "integer",
+     "format": "int64"
+    },
+    "PersonID": {
+     "type": "integer",
+     "format": "int64"
+    }
+   }
+  },
   "SPerson": {
    "type": "object",
    "properties": {
@@ -120,6 +139,41 @@
      }
     },
     "x-unique-id": "func(*kaos.Context, *hd_test.SPerson) (*hd_test.SPerson, error)"
+   }
+  },
+  "/obj/SaveAddress": {
+   "post": {
+    "description": "save person address",
+    "produces": [
+     "application/json"
+    ],
+    "consumes": [
+     "application/json"
+    ],
+    "parameters": [
+     {
+      "name": "body",
+      "description": "body",
+      "in": "body",
+      "schema": {
+       "type": "object",
+       "$ref": "#/definitions/SAddress"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Success",
+      "schema": {
+       "$ref": "#/definitions/SAddress"
+      }
+     },
+     "500": {
+      "description": "Error",
+      "schema": {}
+     }
+    },
+    "x-unique-id": "func(*kaos.Context, *hd_test.SAddress) (*hd_test.SAddress, error)"
    }
   },
   "/obj/SavePerson": {
