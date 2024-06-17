@@ -2,7 +2,7 @@ package hd
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"reflect"
 	"runtime/debug"
@@ -24,7 +24,7 @@ type HttpDeployer struct {
 }
 
 func init() {
-	deployer.RegisterDeployer(DeployerName, func() (deployer.Deployer, error) {
+	deployer.RegisterDeployer(DeployerName, func(ev kaos.EventHub) (deployer.Deployer, error) {
 		return new(HttpDeployer), nil
 	})
 }
@@ -108,7 +108,7 @@ func (h *HttpDeployer) Fn(svc *kaos.Service, sr *kaos.ServiceRoute) func(w http.
 					ctx.Log().Error(fmt.Sprintf("[%d] %s %v trace: %s", randNo, sr.Path, r, string(debug.Stack())))
 				}
 			}()
-			bs, err = ioutil.ReadAll(r.Body)
+			bs, err = io.ReadAll(r.Body)
 			defer r.Body.Close()
 			if tmp, err = h.This().Byter().Decode(bs, tmp, nil); err != nil {
 				runErrTxt = "unable to get payload: " + err.Error()
@@ -212,7 +212,7 @@ func (h *HttpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 	// path := svc.BasePoint() + sr.Path
 	httpFn := h.Fn(svc, sr)
 	sr.Path = strings.ReplaceAll(sr.Path, "\\", "/")
-	svc.Log().Infof("registering to mux: %s", sr.Path)
+	svc.Log().Infof("registering to mux-rest: %s", sr.Path)
 	h.mx.Handle(sr.Path, http.HandlerFunc(httpFn))
 	return nil
 }
