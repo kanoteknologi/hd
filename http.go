@@ -24,7 +24,7 @@ type HttpDeployer struct {
 }
 
 func init() {
-	deployer.RegisterDeployer(DeployerName, func(ev kaos.EventHub) (deployer.Deployer, error) {
+	deployer.RegisterDeployer(DeployerName, func(obj interface{}) (deployer.Deployer, error) {
 		return new(HttpDeployer), nil
 	})
 }
@@ -209,7 +209,6 @@ func (h *HttpDeployer) DeployRoute(svc *kaos.Service, sr *kaos.ServiceRoute, obj
 		return fmt.Errorf("second parameter should be a mux")
 	}
 
-	// path := svc.BasePoint() + sr.Path
 	httpFn := h.Fn(svc, sr)
 	sr.Path = strings.ReplaceAll(sr.Path, "\\", "/")
 	svc.Log().Infof("registering to mux-rest: %s", sr.Path)
@@ -239,4 +238,17 @@ func IsHttpHandler(ctx *kaos.Context) bool {
 		}
 	}
 	return false
+}
+
+func (h *HttpDeployer) Activate(obj interface{}) error {
+	mux := obj.(*http.ServeMux)
+	if mux == nil {
+		return fmt.Errorf("mux is nil")
+	}
+	host, ok := h.Get("host").(string)
+	if !ok || host == "" {
+		return fmt.Errorf("config \"Host\" is not set")
+	}
+	go http.ListenAndServe(host, mux)
+	return nil
 }
