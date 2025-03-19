@@ -105,7 +105,12 @@ func (h *HttpDeployer) Fn(svc *kaos.Service, sr *kaos.ServiceRoute) func(w http.
 				if r := recover(); r != nil {
 					randNo := codekit.RandInt(999999)
 					runErrTxt = fmt.Sprintf("error when running requested operation %s, please contact system admin and give this number [%d]", sr.Path, randNo)
-					ctx.Log().Error(fmt.Sprintf("[%d] %s %v trace: %s", randNo, sr.Path, r, string(debug.Stack())))
+					ctx.Log().Error(codekit.JsonString(
+						codekit.M{}.
+							Set("path", sr.Path).
+							Set("status", http.StatusInternalServerError).
+							Set("error", runErrTxt).
+							Set("trace", string(debug.Stack()))))
 				}
 			}()
 			bs, err = io.ReadAll(r.Body)
@@ -118,6 +123,11 @@ func (h *HttpDeployer) Fn(svc *kaos.Service, sr *kaos.ServiceRoute) func(w http.
 
 		if runErrTxt != "" {
 			statusCode := ctx.Data().Get("http_status_code", http.StatusInternalServerError).(int)
+			ctx.Log().Error(codekit.JsonString(
+				codekit.M{}.
+					Set("path", sr.Path).
+					Set("status", statusCode).
+					Set("msg", runErrTxt)))
 			if h.isWrapError {
 				h.wrapErrFn(ctx, runErrTxt)
 				return
@@ -136,7 +146,12 @@ func (h *HttpDeployer) Fn(svc *kaos.Service, sr *kaos.ServiceRoute) func(w http.
 				if r := recover(); r != nil {
 					randNo := codekit.RandInt(999999)
 					runErrTxt = fmt.Sprintf("error when running requested operation %s, please contact system admin and give this number [%d]", sr.Path, randNo)
-					ctx.Log().Error(fmt.Sprintf("[%d] %s %v trace: %s", randNo, sr.Path, r, string(debug.Stack())))
+					ctx.Log().Error(codekit.JsonString(
+						codekit.M{}.
+							Set("path", sr.Path).
+							Set("status", http.StatusInternalServerError).
+							Set("error", runErrTxt).
+							Set("trace", string(debug.Stack()))))
 					ctx.Data().Get("http_status_code", http.StatusInternalServerError)
 				}
 			}()
@@ -150,6 +165,11 @@ func (h *HttpDeployer) Fn(svc *kaos.Service, sr *kaos.ServiceRoute) func(w http.
 
 		if runErrTxt != "" {
 			statusCode := ctx.Data().Get("http_status_code", http.StatusBadRequest).(int)
+			ctx.Log().Error(codekit.JsonString(
+				codekit.M{}.
+					Set("path", sr.Path).
+					Set("status", statusCode).
+					Set("msg", runErrTxt)))
 			if h.isWrapError {
 				h.wrapErrFn(ctx, runErrTxt)
 				return
@@ -170,6 +190,11 @@ func (h *HttpDeployer) Fn(svc *kaos.Service, sr *kaos.ServiceRoute) func(w http.
 			bs, err = h.This().Byter().Encode(res)
 			if err != nil {
 				statusCode := ctx.Data().Get("http_status_code", http.StatusInternalServerError).(int)
+				ctx.Log().Error(codekit.JsonString(
+					codekit.M{}.
+						Set("path", sr.Path).
+						Set("status", statusCode).
+						Set("msg", runErrTxt)))
 				errTxt := "unable to encode output: " + err.Error()
 				if h.isWrapError {
 					h.wrapErrFn(ctx, errTxt)
