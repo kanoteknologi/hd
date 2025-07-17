@@ -145,7 +145,7 @@ func (h *HttpDeployer) Fn(svc *kaos.Service, sr *kaos.ServiceRoute) func(w http.
 			defer func() {
 				if r := recover(); r != nil {
 					randNo := codekit.RandInt(999999)
-					runErrTxt = fmt.Sprintf("error when running requested operation %s, please contact system admin and give this number [%d]", sr.Path, randNo)
+					runErrTxt = fmt.Sprintf("error when running requested operation %s, %v please contact system admin and give this number [%d]", sr.Path, r, randNo)
 					ctx.Log().Error(codekit.JsonString(
 						codekit.M{}.
 							Set("path", sr.Path).
