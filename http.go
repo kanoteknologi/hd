@@ -164,7 +164,7 @@ func (h *HttpDeployer) Fn(svc *kaos.Service, sr *kaos.ServiceRoute) func(w http.
 		}()
 
 		if runErrTxt != "" {
-			statusCode := ctx.Data().Get("http_status_code", http.StatusBadRequest).(int)
+			statusCode := ctx.Data().Get("http_status_code", http.StatusInternalServerError).(int)
 			ctx.Log().Error(codekit.JsonString(
 				codekit.M{}.
 					Set("path", sr.Path).
